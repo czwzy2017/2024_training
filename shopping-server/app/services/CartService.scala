@@ -38,25 +38,35 @@ object CartService {
     }
   }
 
-  def listCart(userId: String): ListBuffer[Cart] = {
-    val carts: ListBuffer[Cart] = new ListBuffer[Cart]()
-    val user = selectUser(userId)
-    for ((productId, count) <- user.cart) {
-      val product = selectProduct(productId)
-      carts.append(Cart(product.id, product.name, count))
+  def listCart(request: Request[AnyContent]): Result = {
+    val userIdOpt = request.getQueryString("userId")
+    userIdOpt match {
+      case Some(userId) =>
+        val carts: ListBuffer[Cart] = new ListBuffer[Cart]()
+        val user = selectUser(userId)
+        for ((productId, count) <- user.cart) {
+          val product = selectProduct(productId)
+          carts.append(Cart(product.id, product.name, count))
+        }
+        Ok("购物车：" + carts.toString())
+      case None => BadRequest("未传入userId")
     }
-    carts
   }
 
-  def emptyCart(userId: String): Double = {
-    val user = selectUser(userId)
-    var total: Double = 0
-    for ((productId, count) <- user.cart) {
-      val product = selectProduct(productId)
-      total += product.price * count
+  def emptyCart(request: Request[AnyContent]): Result = {
+    val userIdOpt = request.getQueryString("userId")
+    userIdOpt match {
+      case Some(userId) =>
+        val user = selectUser(userId)
+        var total: Double = 0
+        for ((productId, count) <- user.cart) {
+          val product = selectProduct(productId)
+          total += product.price * count
+        }
+        user.cart.clear()
+        Ok("已清空购物车，购车中所有商品总价为：" + total)
+      case None => BadRequest("未传入userId")
     }
-    user.cart.clear()
-    total
   }
 
   private def selectUser(userId: String): User = {

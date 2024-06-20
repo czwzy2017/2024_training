@@ -2,13 +2,13 @@ package services
 
 import akka.actor._
 import play.api.libs.json.JsValue
-import play.api.mvc.Request
+import play.api.mvc._
 
 case class AddProduct(request: Request[JsValue])
 
-case class ListCart(userId: String)
+case class ListCart(request: Request[AnyContent])
 
-case class EmptyCart(userId: String)
+case class EmptyCart(request: Request[AnyContent])
 
 class MyActor extends Actor() {
   def receive: Receive = {

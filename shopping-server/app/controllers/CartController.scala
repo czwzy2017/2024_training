@@ -20,19 +20,15 @@ class CartController @Inject()(controllerComponents: ControllerComponents)(impli
     }
   }
 
-  def listCart = Action { implicit request: Request[AnyContent] =>
-    val userIdOpt = request.getQueryString("userId")
-    userIdOpt match {
-      case Some(userId) => Ok("购物车：" + CartService.listCart(userId).toString())
-      case None => BadRequest("未传入userId")
+  def listCart = Action.async { implicit request: Request[AnyContent] =>
+    (myActor ? ListCart(request)).mapTo[Result].map{ result=>
+      result
     }
   }
 
-  def emptyCart = Action { implicit request: Request[AnyContent] =>
-    val userIdOpt = request.getQueryString("userId")
-    userIdOpt match {
-      case Some(userId) => Ok("已清空购物车，购车中所有商品总价为：" + CartService.emptyCart(userId))
-      case None => BadRequest("未传入userId")
+  def emptyCart = Action.async { implicit request: Request[AnyContent] =>
+    (myActor ? EmptyCart(request)).mapTo[Result].map{ result=>
+      result
     }
   }
 }
