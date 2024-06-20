@@ -1,6 +1,9 @@
 package services
 
+import play.api.libs.json._
+import play.api.mvc._
 import models._
+import play.api.mvc.Results._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -23,10 +26,16 @@ object CartService {
     User("u005", mutable.Map[String, Int]())
   )
 
-  def addProduct(userId: String, productId: String, count: Int) = {
-    val user = selectUser(userId)
-    user.cart(productId) = user.cart.getOrElse(productId, 0) + count
-    println(users.toString())
+  def addProduct(request: Request[JsValue]): Result = {
+    request.body.validate[addRequest] match {
+      case JsSuccess(addRequest, _) =>
+        val user = selectUser(addRequest.userId)
+        user.cart(addRequest.productId) = user.cart.getOrElse(addRequest.productId, 0) + addRequest.count
+        println(users.toString())
+        Created("添加成功")
+      case JsError(errors) =>
+        BadRequest(Json.obj("错误信息：" -> JsError.toJson(errors)))
+    }
   }
 
   def listCart(userId: String): ListBuffer[Cart] = {

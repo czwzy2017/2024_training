@@ -8,6 +8,8 @@ lazy val root = (project in file("."))
     name := """shopping-server""",
     libraryDependencies ++= Seq(
       guice,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
+      "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test,
+      "com.typesafe.akka" %% "akka-actor" % "2.8.5",
+      "com.typesafe.play" %% "play-akka-http-server" % "2.8.22"
     )
   )

@@ -3,18 +3,20 @@ package controllers
 import play.api.libs.json._
 import services._
 import play.api.mvc._
-import models._
+import akka.actor._
+import akka.pattern.ask
+import akka.util.Timeout
 
 import javax.inject.Inject
+import scala.concurrent._
+import scala.concurrent.duration.DurationInt
 
-class CartController @Inject()(controllerComponents: ControllerComponents) extends AbstractController(controllerComponents) {
-  def addProduct: Action[JsValue] = Action(parse.json) { implicit request: Request[JsValue] =>
-    request.body.validate[addRequest] match {
-      case JsSuccess(addRequest, _) =>
-        CartService.addProduct(addRequest.userId, addRequest.productId, addRequest.count)
-        Created("添加成功")
-      case JsError(errors) =>
-        BadRequest(Json.obj("错误信息：" -> JsError.toJson(errors)))
+class CartController @Inject()(controllerComponents: ControllerComponents)(implicit system: ActorSystem,ec: ExecutionContext) extends AbstractController(controllerComponents) {
+  implicit val timeout:Timeout = 5.seconds
+  private val myActor:ActorRef = system.actorOf(MyActor.props,"myActor")
+  def addProduct: Action[JsValue] = Action(parse.json).async { implicit request: Request[JsValue] =>
+    (myActor ? AddProduct(request)).mapTo[Result].map{ result=>
+        result
     }
   }
 
